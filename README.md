@@ -1,6 +1,9 @@
-AtliQ Mart’s Diwali & Sankranti Promotions
+**AtliQ Mart’s Diwali & Sankranti Promotions**
+
 This repository contains SQL scripts and analysis of promotional campaigns run by AtliQ Mart during Diwali 2023 and Sankranti 2024. The project focuses on evaluating campaign performance, product-level impact, and store distribution, while addressing key business requests related to incremental sales, revenue growth, and promotion effectiveness.
-Introduction
+
+**Introduction**
+
 Festive promotions are critical in the retail industry, as they attract customers, boost sales, and strengthen brand loyalty. AtliQ Mart conducted large-scale campaigns during Diwali 2023 and Sankranti 2024, offering a variety of product-level discounts.
 This project uses SQL-based analysis to evaluate the success of these campaigns. The goal is to generate actionable insights into:
 High-value discounted products
@@ -8,19 +11,22 @@ Store distribution and performance
 Campaign effectiveness across categories
 The findings aim to guide future marketing strategies and optimize resource allocation.
 
-Data Sources
+**Data Sources**
+
 The analysis is based on AtliQ Mart’s internal databases, with the following datasets:
 fact_events → Transactional data of promotions and sales
 dim_products → Product details including category and price
 dim_stores → Store information and locations
 sales_summary → Aggregated revenue and sales performance
 
-Project Overview
+**Project Overview**
+
 Performed SQL queries to address five business requests.
 Generated insights into product, store, and campaign-level performance.
 Recommendations support data-driven decision-making for upcoming promotions.
 
-Business Requests
+**Business Requests**
+
 1. High-Value Products in 'BOGOF' Promotion
 Objective: Identify high-value products featured in the 'BOGOF' (Buy One Get One Free) promotion.
 
@@ -92,7 +98,8 @@ group by product_name,category
  select product_name,category,IR,`IR%`, rank() over(order by `IR%` desc) 
  as Rank_IR from IR_ limit 5
 
-Results and Insights
+**Results and Insights**
+
 High-value products were included in BOGOF promotions, boosting customer interest.
 Store distribution varied across cities, influencing campaign outcomes.
 Revenue increased significantly after both Diwali and Sankranti campaigns.
@@ -100,7 +107,7 @@ Diwali promotions drove strong growth in incremental sales and revenue %.
 Top 5 products contributed the highest share of incremental revenue.
 These insights guide smarter promotions, better resource allocation, and stronger festive sales strategies.
 
-Conclusion
+**Conclusion**
 
 The analysis of Diwali 2023 and Sankranti 2024 campaigns shows that data-driven insights help AtliQ Mart:
 Focus on high-performing products and stores
