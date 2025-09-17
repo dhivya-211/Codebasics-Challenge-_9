@@ -1,0 +1,62 @@
+Business Requests
+
+1. High-Value Products in 'BOGOF' Promotion Objective: Identify high-value products featured in the 'BOGOF' (Buy One Get One Free) promotion.
+
+SELECT distinct p.product_name,f.base_price FROM fact_events f
+join dim_products p using(product_code)
+where base_price >500 and promo_type = 'BOGOF';
+
+2. Store Presence Overview Objective: Provide an overview of the number of stores in each city.
+
+select city,count(store_id) as Stores from dim_stores group by city order by Stores desc;
+
+3. Promotional Campaign Revenue Analysis Objective: Display total revenue generated before and after each promotional campaign.
+
+select campaign_name,concat(round(sum(base_price * quantity_sold(before_promo))/1000000,2),'M') as Total_Revenue(Before_Promotion),
+concat(round(sum(
+case
+when promo_type="50% OFF" then base_price * 0.5 *(quantity_sold(after_promo))
+when promo_type="25% OFF" then base_price * 0.25 *(quantity_sold(after_promo))
+when promo_type="33% OFF" then base_price * 0.33 *(quantity_sold(after_promo))
+when promo_type="500 Cashback" then (base_price - 500) *(quantity_sold(after_promo))
+when promo_type="BOGOF" then base_price * 0.5 * 2 *(quantity_sold(after_promo)) end)/1000000,2),'M') as Total_Revenue(After_Promotion)
+from fact_events f join dim_campaigns using (campaign_id)
+group by campaign_id
+
+4.Incremental Sold Quantity Analysis during Diwali Campaign Objective: Calculate Incremental Sold Quantity (ISU%) for each category during the Diwali campaign.
+
+with Diwali1 as(
+select *, (if(promo_type="BOGOF",quantity_sold(after_promo) * 2,quantity_sold(after_promo)))
+as quantaties_sold_AP from dim_products p
+join fact_events f using(product_code)
+join dim_campaigns c using(campaign_id)
+where campaign_name = "Diwali" ),
+ISU as(
+select campaign_name, category,(sum(quantaties_sold_AP)-sum(quantity_sold(before_promo))) as ISU,
+((sum(quantaties_sold_AP)-sum(quantity_sold(before_promo)))/
+sum(quantity_sold(before_promo))) * 100 as ISU%
+from Diwali1 group by category
+)
+select category, ISU,ISU% , rank() over(order by ISU% DESC) as 'ISU%_Rank' from ISU;
+
+5. Top 5 Products by Incremental Revenue Percentage Objective: Identify the top 5 products ranked by Incremental Revenue Percentage (IR%) across all campaigns.
+
+With Total as(
+select product_name,category,sum(base_price* quantity_sold(before_promo)) as revenue_before_promo,
+(sum(case
+when promo_type="50% OFF" then base_price * 0.5 *(quantity_sold(after_promo))
+when promo_type="25% OFF" then base_price * 0.25 *(quantity_sold(after_promo))
+when promo_type="33% OFF" then base_price * 0.33 *(quantity_sold(after_promo))
+when promo_type="500 Cashback" then (base_price - 500) *(quantity_sold(after_promo))
+when promo_type="BOGOF" then base_price * 0.5 * 2 *(quantity_sold(after_promo))
+end))
+as Total_Revenue(After_Promotion)
+from dim_products join fact_events using(product_code)
+-- join dim_campaigns using(campaign_id)
+group by product_name,category),
+IR_ as(
+select * , (Total_Revenue(After_Promotion)-revenue_before_promo ) as IR,
+((Total_Revenue(After_Promotion)-revenue_before_promo )/revenue_before_promo)*100 as IR%
+from Total )
+select product_name,category,IR,IR%, rank() over(order by IR% desc)
+as Rank_IR from IR_ limit 5
